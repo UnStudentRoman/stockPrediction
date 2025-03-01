@@ -5,6 +5,7 @@ import random
 from db_handler import save_csv_metadata
 from logging_handler import logger
 from config import UPLOAD_FOLDER
+from io import BytesIO
 
 
 # Create API Blueprint for modularity.
@@ -45,15 +46,73 @@ def upload_csv():
     If multiple values in str type column notify the user about it and keep only rows with most appearances. 
     """
 
+    try:
+        df = pd.read_csv(BytesIO(file.stream.read()), header=None, names=['Name', 'Date', 'Price'])
+
+        # Check if DF is empty.
+        if df.empty:
+            logger.error("CSV file is empty")
+            return jsonify({"error": "CSV file is empty."}), 400
+
+        # Check if DF has 3 columns.
+        if len(df.columns) != 3:
+            logger.error(f"CSV file has {len(df.columns)} columns.")
+            return jsonify({"error": "CSV file must have three columns."}), 400
+
+        # Check Date column.
+        try:
+            df["Date"] = pd.to_datetime(df['Date'], format='%d-%m-%Y')
+        except ValueError:
+            logger.error(f"Error validating CSV - DATE column. {ValueError}")
+            return jsonify({"error": "Invalid CSV - DATE column - Check logs for more info."}), 400
+
+    except Exception as e:
+        logger.error(f"Error validating CSV: {str(e)}")
+        return jsonify({"error": "Error validating CSV."}), 400
+
     # Save file in UPLOADS folder.
     file_path = os.path.join(UPLOAD_FOLDER, file.filename)
-    file.save(file_path)
+    df.to_csv(file_path, index=False)
 
     # Save metadata in DB.
     save_csv_metadata(file.filename, file_path)
 
     logger.info(f"File {file.filename} uploaded successfully")
     return jsonify({"message": "File uploaded successfully", "filename": file.filename}), 200
+
+
+@api_blueprint.route('/get_timeseries', methods=['GET'])
+def get_timeseries():
+    """
+    API endpoint: /get_timeseries
+    Expect filename as param.
+    Example cURL:
+        curl --location 'http://127.0.0.1:5000/get_timeseries?filename=stock_prices.csv'
+    :return: Data as list of dicts with the following keys: timestamp / stock_price / stock_name or Error.
+    """
+    filename = request.args.get('filename')
+    if not filename:
+        logger.error("Filename not provided")
+        return jsonify({"error": "Filename is required"}), 400
+
+    file_path = os.path.join(UPLOAD_FOLDER, filename)
+    if not os.path.exists(file_path):
+        logger.error("File not found")
+        return jsonify({"error": "File not found"}), 404
+
+    try:
+        df = pd.read_csv(file_path)
+        if len(df) < 10:
+            return jsonify({"error": "Not enough data points"}), 400
+
+        start_idx = random.randint(0, len(df) - 10)
+        selected_points = df.iloc[start_idx:start_idx + 10].to_dict(orient='records')
+
+        logger.info(f"Returning 10 points from index {start_idx}")
+        return jsonify({"data": selected_points}), 200
+    except Exception as e:
+        logger.error(f"Error processing file: {str(e)}")
+        return jsonify({"error": "Failed to process file"}), 500
 
 
 if __name__ == '__main__':
