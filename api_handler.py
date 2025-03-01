@@ -1,13 +1,17 @@
 import pandas as pd
 from flask import Blueprint, request, jsonify
+from flask_swagger_ui import get_swaggerui_blueprint
 from os import path
 from io import BytesIO
 from random import randint
-from db_handler import save_csv_metadata
+from db_handler import save_csv_metadata, get_csv_files
 from logging_handler import logger
-from config import UPLOAD_FOLDER
+from config import UPLOAD_FOLDER, SWAGGER_URL, API_URL
 from util import linear_trend_forecast
 
+
+# Swagger UI Blueprint
+swagger_ui_blueprint = get_swaggerui_blueprint(SWAGGER_URL, API_URL, config={'app_name': "My API"})
 
 # Create API Blueprint for modularity.
 api_blueprint = Blueprint('api', __name__)
@@ -146,6 +150,24 @@ def get_forecast():
     except Exception as e:
         logger.error(f"Error creating forecast: {str(e)}")
         return jsonify({"error": "Failed to create forecast."}), 500
+
+
+@api_blueprint.route('/all_uploads', methods=['GET'])
+def get_all_uploads():
+    uploads = get_csv_files()
+    if not uploads:
+        logger.error("Empty DB.")
+        return jsonify({"error": "No files uploaded in the DB."}), 400
+
+    uploads = [
+        {
+            "idx": item[0],
+            "file": item[1],
+            "file_path": item[2],
+            "uploaded_at": item[3]
+        } for item in uploads]
+
+    return jsonify({"data": uploads}), 200
 
 
 if __name__ == '__main__':
