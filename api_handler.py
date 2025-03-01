@@ -72,7 +72,8 @@ def upload_csv():
 
     # Save file in UPLOADS folder.
     file_path = os.path.join(UPLOAD_FOLDER, file.filename)
-    df.to_csv(file_path, index=False)
+    df.index.name = 'idx'
+    df.to_csv(file_path, index=True)
 
     # Save metadata in DB.
     save_csv_metadata(file.filename, file_path)
@@ -113,6 +114,34 @@ def get_timeseries():
     except Exception as e:
         logger.error(f"Error processing file: {str(e)}")
         return jsonify({"error": "Failed to process file"}), 500
+
+
+@api_blueprint.route('/get_forcast', methods=['GET'])
+def get_forcast():
+    filename = request.args.get('filename')
+    if not filename:
+        logger.error("Filename not provided")
+        return jsonify({"error": "Filename is required"}), 400
+
+    file_path = os.path.join(UPLOAD_FOLDER, filename)
+    if not os.path.exists(file_path):
+        logger.error("File not found")
+        return jsonify({"error": "File not found"}), 404
+
+    start_idx = request.args.get('start_idx')
+    if not start_idx:
+        logger.error("No starting index provided.")
+        return jsonify({"error": "Starting index is required"}), 400
+
+    try:
+        df = pd.read_csv(file_path)
+        selected_points = df.iloc[int(start_idx):int(start_idx) + 3].to_dict(orient='records')
+        return jsonify({"data": selected_points}), 200
+
+    except Exception as e:
+        logger.error(f"Error creating forcast: {str(e)}")
+        return jsonify({"error": "Failed to create forcast."}), 500
+
 
 
 if __name__ == '__main__':
