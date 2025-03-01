@@ -1,11 +1,12 @@
-from flask import Blueprint, request, jsonify
 import pandas as pd
-import os
-import random
+from flask import Blueprint, request, jsonify
+from os import path
+from io import BytesIO
+from random import randint
 from db_handler import save_csv_metadata
 from logging_handler import logger
 from config import UPLOAD_FOLDER
-from io import BytesIO
+from util import linear_trend_forecast
 
 
 # Create API Blueprint for modularity.
@@ -71,7 +72,7 @@ def upload_csv():
         return jsonify({"error": "Error validating CSV."}), 400
 
     # Save file in UPLOADS folder.
-    file_path = os.path.join(UPLOAD_FOLDER, file.filename)
+    file_path = path.join(UPLOAD_FOLDER, file.filename)
     df.index.name = 'idx'
     df.to_csv(file_path, index=True)
 
@@ -96,8 +97,8 @@ def get_timeseries():
         logger.error("Filename not provided")
         return jsonify({"error": "Filename is required"}), 400
 
-    file_path = os.path.join(UPLOAD_FOLDER, filename)
-    if not os.path.exists(file_path):
+    file_path = path.join(UPLOAD_FOLDER, filename)
+    if not path.exists(file_path):
         logger.error("File not found")
         return jsonify({"error": "File not found"}), 404
 
@@ -106,7 +107,7 @@ def get_timeseries():
         if len(df) < 10:
             return jsonify({"error": "Not enough data points"}), 400
 
-        start_idx = random.randint(0, len(df) - 10)
+        start_idx = randint(0, len(df) - 10)
         selected_points = df.iloc[start_idx:start_idx + 10].to_dict(orient='records')
 
         logger.info(f"Returning 10 points from index {start_idx}")
@@ -116,15 +117,15 @@ def get_timeseries():
         return jsonify({"error": "Failed to process file"}), 500
 
 
-@api_blueprint.route('/get_forcast', methods=['GET'])
-def get_forcast():
+@api_blueprint.route('/get_forecast', methods=['GET'])
+def get_forecast():
     filename = request.args.get('filename')
     if not filename:
         logger.error("Filename not provided")
         return jsonify({"error": "Filename is required"}), 400
 
-    file_path = os.path.join(UPLOAD_FOLDER, filename)
-    if not os.path.exists(file_path):
+    file_path = path.join(UPLOAD_FOLDER, filename)
+    if not path.exists(file_path):
         logger.error("File not found")
         return jsonify({"error": "File not found"}), 404
 
@@ -135,13 +136,16 @@ def get_forcast():
 
     try:
         df = pd.read_csv(file_path)
-        selected_points = df.iloc[int(start_idx):int(start_idx) + 3].to_dict(orient='records')
-        return jsonify({"data": selected_points}), 200
+        forecast = linear_trend_forecast(df.loc[int(start_idx) - 10:int(start_idx)])
+
+        # Forecast future values
+        forecast.to_dict(orient='records')
+
+        return jsonify({"data": forecast.to_dict(orient='records')}), 200
 
     except Exception as e:
-        logger.error(f"Error creating forcast: {str(e)}")
-        return jsonify({"error": "Failed to create forcast."}), 500
-
+        logger.error(f"Error creating forecast: {str(e)}")
+        return jsonify({"error": "Failed to create forecast."}), 500
 
 
 if __name__ == '__main__':
