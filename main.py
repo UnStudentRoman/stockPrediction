@@ -1,8 +1,9 @@
 from flask import Flask
 from flask_cors import CORS
-from api_handler import api_blueprint
+from api_handler import api_blueprint, swagger_ui_blueprint
 from logging_handler import setup_logging
 from os import makedirs
+from config import SWAGGER_URL
 
 
 def create_app():
@@ -14,6 +15,8 @@ def create_app():
 
     # Register blueprints
     app.register_blueprint(api_blueprint)
+    # Register the Swagger UI blueprint
+    app.register_blueprint(swagger_ui_blueprint, url_prefix=SWAGGER_URL)
 
     # Ensure required directories exist
     makedirs("uploads", exist_ok=True)
