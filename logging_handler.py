@@ -7,7 +7,7 @@ def setup_logging():
         filename=LOG_PATH,
         level=logging.INFO,
         encoding='utf-8',
-        filemode='a',
+        filemode='w',
         format='%(asctime)s - %(levelname)s - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S')
 
