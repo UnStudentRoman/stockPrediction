@@ -39,6 +39,15 @@ def get_csv_file(filename):
     return result[0] if result else None
 
 
+def get_csv_files():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM csv_files;", ())
+    result = cursor.fetchall()
+    conn.close()
+    return result if result else None
+
+
 # Initialize the database when the module is imported
 init_db()
 
