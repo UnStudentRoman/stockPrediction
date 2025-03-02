@@ -1,0 +1,66 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Flask API for Time Series Data",
+    "description": "This API allows users to upload CSV files and retrieve time series data.",
+    "version": "1.0.0"
+  },
+  "host": "localhost:5000",
+  "schemes": ["http"],
+  "paths": {
+    "/upload": {
+      "post": {
+        "summary": "Upload a CSV file",
+        "consumes": ["multipart/form-data"],
+        "parameters": [
+          {
+            "name": "file",
+            "in": "formData",
+            "required": true,
+            "type": "file",
+            "description": "CSV file to upload"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File uploaded successfully"
+          },
+          "400": {
+            "description": "Invalid file format or missing file"
+          }
+        }
+      }
+    },
+    "/get_timeseries": {
+      "get": {
+        "summary": "Retrieve 10 random time series data points",
+        "parameters": [
+          {
+            "name": "filename",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "description": "Name of the uploaded CSV file"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns 10 time series data points",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            }
+          },
+          "400": {
+            "description": "Filename missing or not enough data points"
+          },
+          "404": {
+            "description": "File not found"
+          }
+        }
+      }
+    }
+  }
+}
