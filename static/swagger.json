@@ -78,7 +78,7 @@
             "in": "query",
             "required": true,
             "type": "string",
-            "description": "Starting index of the time series response."
+            "description": "Last index of the time series response."
           }
         ],
         "responses": {
