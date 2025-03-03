@@ -8,11 +8,6 @@ This project is a Flask-based backend that provides an API for uploading CSV fil
 ### Set-up a Virtual Environment & Install Dependencies
 Ensure you have Python installed, then install the required dependencies:
 
-```sh
-python -m venv venv
-pip install -r requirements.txt
-```
-
 ## Project Structure
 ```
 flask-backend/
@@ -33,11 +28,12 @@ flask-backend/
 1. Clone the repository:
 ```sh
 git clone <repository_url>
-cd flask-backend
+cd sockPrediction
 ```
 
 2. Install dependencies:
 ```sh
+python -m venv venv
 pip install -r requirements.txt
 ```
 
@@ -53,6 +49,10 @@ http://localhost:5000
 
 ## API Endpoints
 
+### Swagger
+**Endpoint:** `GET /swagger`
+- API documentation.
+
 ### Upload CSV
 **Endpoint:** `POST /upload`
 - Uploads a CSV file to the backend.
@@ -62,30 +62,13 @@ http://localhost:5000
 **Endpoint:** `GET /get_timeseries`
 - Retrieves 10 random points from the uploaded CSV.
 
-## Adding Swagger API Documentation
-To enable Swagger UI for API documentation:
+### Get Time Series Forecast
+**Endpoint:** `GET /get_forecast`
+- Create 3 points from the uploaded CSV and the endpoint of the "/get_timeseries" data.
 
-1. Install `flask-swagger-ui`:
-```sh
-pip install flask-swagger-ui
-```
-
-2. Modify `main.py` to include Swagger UI:
-```python
-from flask_swagger_ui import get_swaggerui_blueprint
-
-SWAGGER_URL = "/api/docs"
-API_URL = "/static/swagger.json"  # Path to your OpenAPI JSON file
-swagger_ui_blueprint = get_swaggerui_blueprint(SWAGGER_URL, API_URL)
-app.register_blueprint(swagger_ui_blueprint, url_prefix=SWAGGER_URL)
-```
-
-3. Create a `static/swagger.json` file with API definitions.
-
-4. Access Swagger UI at:
-```
-http://localhost:5000/api/docs
-```
+### Get All Uploads
+**Endpoint:** `GET /all_uploads`
+- Queries the database for all uploaded CSV files.
 
 ## Logging
 - Logs are stored in `logs/app.log`.
@@ -95,9 +78,11 @@ http://localhost:5000/api/docs
 - SQLite is used for storing CSV metadata.
 - Data is stored in `database/data.db`.
 
-## Future Enhancements
-- Improved prediction models for stock data.
-- User authentication and multi-file support.
+## How to Use
 
-## License
-This project is open-source. Modify and use it as needed.
+- Start Flask server by running main.py
+- Query `GET /all_uploads` endpoint to see what files are in the database.
+- Upload a file via `POST /upload`. 
+- Check `GET /all_uploads` to make sure the file is in the database.
+- Use `GET /get_timeseries` to generate 10 random points.
+- Use `GET /get_forecast` to generate 3 prediction points.
