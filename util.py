@@ -26,9 +26,10 @@ def linear_trend_forecast(data: pd.DataFrame):
 
     # Convert predicted days back to dates
     future_dates = [stock_data["Date"].max() + timedelta(days=i) for i in range(1, 4)]
+    future_dates = [item.strftime('%Y-%m-%d') for item in future_dates]
 
     # Return DataFrame with predictions
-    predictions = pd.DataFrame({"Date": future_dates, "Price": future_prices.flatten()})
+    predictions = pd.DataFrame({"Date": future_dates, "Price": future_prices.round(decimals=2).flatten()})
 
     return predictions
 
