@@ -7,6 +7,11 @@ from config import SWAGGER_URL
 
 
 def create_app():
+    # Ensure required directories exist
+    makedirs("uploads", exist_ok=True)
+    makedirs("logs", exist_ok=True)
+    makedirs("database", exist_ok=True)
+
     app = Flask(__name__)
     CORS(app)  # Enable CORS for frontend communication
 
@@ -17,11 +22,6 @@ def create_app():
     app.register_blueprint(api_blueprint)
     # Register the Swagger UI blueprint
     app.register_blueprint(swagger_ui_blueprint, url_prefix=SWAGGER_URL)
-
-    # Ensure required directories exist
-    makedirs("uploads", exist_ok=True)
-    makedirs("logs", exist_ok=True)
-    makedirs("database", exist_ok=True)
 
     return app
 
