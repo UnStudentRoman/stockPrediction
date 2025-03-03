@@ -1,7 +1,7 @@
 import pandas as pd
 from flask import Blueprint, request, jsonify
 from flask_swagger_ui import get_swaggerui_blueprint
-from os import path
+from os import path, makedirs
 from io import BytesIO
 from random import randint
 from db_handler import save_csv_metadata, get_csv_files
@@ -9,7 +9,7 @@ from logging_handler import logger
 from config import UPLOAD_FOLDER, SWAGGER_URL, API_URL
 from util import linear_trend_forecast
 
-
+makedirs("uploads", exist_ok=True)
 # Swagger UI Blueprint
 swagger_ui_blueprint = get_swaggerui_blueprint(SWAGGER_URL, API_URL, config={'app_name': "My API"})
 
