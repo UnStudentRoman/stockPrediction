@@ -1,8 +1,10 @@
 import logging
 from config import LOG_PATH
+from os import makedirs
 
 
 def setup_logging():
+    makedirs("logs", exist_ok=True)
     logging.basicConfig(
         filename=LOG_PATH,
         level=logging.INFO,
