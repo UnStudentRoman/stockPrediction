@@ -51,7 +51,7 @@ http://localhost:5000
 
 ### Swagger
 **Endpoint:** `GET /swagger`
-- API documentation.
+- API documentation. You can find cURL examples for all endpoints in Swagger.
 
 ### Upload CSV
 **Endpoint:** `POST /upload`
