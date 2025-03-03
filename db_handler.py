@@ -1,9 +1,11 @@
 import sqlite3
 from logging_handler import logger
 from config import DB_PATH
+from os import makedirs
 
 
 def init_db():
+    makedirs("database", exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute('''CREATE TABLE IF NOT EXISTS csv_files (
